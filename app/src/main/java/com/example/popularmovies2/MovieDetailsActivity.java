@@ -14,13 +14,14 @@ import android.widget.TextView;
 import com.example.popularmovies2.models.DetailMovie;
 import com.example.popularmovies2.models.Movie;
 import com.example.popularmovies2.models.Review;
+import com.example.popularmovies2.models.Trailer;
 import com.example.popularmovies2.utilities.AsyncTaskCompleteListener;
 import com.example.popularmovies2.utilities.FetchAsyncTaskBase;
 import com.example.popularmovies2.utilities.NetworkUtils;
 import com.example.popularmovies2.utilities.ReviewsJsonUtils;
+import com.example.popularmovies2.utilities.TrailerJsonUtils;
+import com.example.popularmovies2.utilities.TrailersAdapter;
 import com.squareup.picasso.Picasso;
-
-import java.net.URL;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -41,9 +42,14 @@ public class MovieDetailsActivity extends AppCompatActivity implements AsyncTask
     TextView mMovieDuration;
     @BindView(R.id.no_reviews_tv)
     TextView mNoReviews;
+    @BindView(R.id.no_trailers_tv)
+    TextView mNoTrailers;
     @BindView(R.id.details_reviews_recycler_view)
     RecyclerView mReviewsRecyclerView;
     private  ReviewsAdapter mReviewsAdapter;
+    @BindView(R.id.details_trailers_recycler_view)
+    RecyclerView mTrailersRecyclerView;
+    private  TrailersAdapter mTrailersAdapter;
 
 
     @Override
@@ -59,17 +65,28 @@ public class MovieDetailsActivity extends AppCompatActivity implements AsyncTask
         FetchAsyncTaskBase getMovies = new FetchAsyncTaskBase(selectedMovie.getMovieId(), this);
         getMovies.execute();
 
+        loadReviewData(selectedMovie.getMovieId() + "/reviews");
+        loadTrailerData(selectedMovie.getMovieId() + "/videos");
+    }
+
+    private void loadReviewData(String query){
+
         LinearLayoutManager reviewsLayoutManager = new LinearLayoutManager(this);
         mReviewsRecyclerView.setLayoutManager(reviewsLayoutManager);
         mReviewsRecyclerView.setHasFixedSize(true);
         mReviewsRecyclerView.setAdapter(mReviewsAdapter);
 
-        loadReviewData(selectedMovie.getMovieId() + "/reviews");
-
+        new FetchReviewTask().execute(query);
     }
 
-    private void loadReviewData(String query){
-        new FetchReviewTask().execute(query);
+    private void loadTrailerData(String query){
+
+        LinearLayoutManager trailersLayoutManager = new LinearLayoutManager(this);
+        mTrailersRecyclerView.setLayoutManager(trailersLayoutManager);
+        mTrailersRecyclerView.setHasFixedSize(true);
+        mTrailersRecyclerView.setAdapter(mTrailersAdapter);
+
+        new FetchTrailerTask().execute(query);
     }
 
     @SuppressLint("SetTextI18n")
@@ -150,7 +167,44 @@ public class MovieDetailsActivity extends AppCompatActivity implements AsyncTask
                     mNoReviews.setVisibility(View.VISIBLE);
                 }else{
                     mReviewsRecyclerView.setAdapter(mReviewsAdapter);
-                    mNoReviews.setVisibility(View.INVISIBLE);
+                    mNoReviews.setVisibility(View.GONE);
+                }
+            }
+        }
+
+    }
+
+    public class FetchTrailerTask extends AsyncTask<String, Void, Trailer[]> {
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+        }
+
+        @Override
+        protected Trailer[] doInBackground(String... params) {
+
+            if (params.length == 0){ return null; }
+            try {
+                String jsonMovieResponse = NetworkUtils.getResponseFromHttpUrl(NetworkUtils.buildUrl(params[0]));
+
+                return TrailerJsonUtils.getTrailersStringsFromJson(jsonMovieResponse);
+
+            } catch (Exception e) {
+                e.printStackTrace();
+                return null;
+            }
+        }
+
+        @Override
+        protected void onPostExecute(Trailer[] trailerData) {
+            if (trailerData != null) {
+                mTrailersAdapter = new TrailersAdapter(trailerData);
+                if(mTrailersAdapter.getItemCount() == 0){
+                    mNoTrailers.setText(getApplicationContext().getString(R.string.no_trailers));
+                    mNoTrailers.setVisibility(View.VISIBLE);
+                }else{
+                    mTrailersRecyclerView.setAdapter(mTrailersAdapter);
+                    mNoTrailers.setVisibility(View.GONE);
                 }
             }
         }

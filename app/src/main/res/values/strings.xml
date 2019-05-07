@@ -13,4 +13,7 @@
     <string name="trailers">Trailers:</string>
     <string name="reviews">Reviews:</string>
     <string name="no_reviews">No reviews yet</string>
+    <string name="name_video">Name</string>
+    <string name="type_video">Type</string>
+    <string name="no_trailers">No videos :(</string>
 </resources>

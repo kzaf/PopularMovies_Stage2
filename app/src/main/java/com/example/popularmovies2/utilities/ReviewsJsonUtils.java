@@ -15,7 +15,6 @@ public final class ReviewsJsonUtils {
     public static Review[] getReviewsStringsFromJson(String json) throws JSONException {
 
         JSONObject reviewsJson = new JSONObject(json);
-
         JSONArray reviewsJsonArray = reviewsJson.optJSONArray(RESULTS);
 
         Review[] reviewsArray = new Review[reviewsJsonArray.length()];
