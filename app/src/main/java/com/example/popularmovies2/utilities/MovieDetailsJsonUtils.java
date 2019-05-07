@@ -1,5 +1,6 @@
 package com.example.popularmovies2.utilities;
 
+import com.example.popularmovies2.models.DetailMovie;
 import com.example.popularmovies2.models.Movie;
 
 import org.json.JSONArray;
@@ -8,6 +9,7 @@ import org.json.JSONObject;
 
 public final class MovieDetailsJsonUtils {
 
+    private static final String ID = "id";
     private static final String RESULTS = "results";
     private static final String TITLE = "title";
     private static final String POSTER_PATH = "poster_path";
@@ -19,7 +21,7 @@ public final class MovieDetailsJsonUtils {
     private static final String POSTER_BASE_URL = "http://image.tmdb.org/t/p/";
     private static final String POSTER_SIZE = "w500";
 
-    public static Movie[] getSimpleWeatherStringsFromJson(String json) throws JSONException {
+    public static Movie[] getSimpleMovieStringsFromJson(String json) throws JSONException {
 
         JSONObject moviesJson = new JSONObject(json);
 
@@ -28,23 +30,39 @@ public final class MovieDetailsJsonUtils {
         Movie[] moviesDetailsArray = new Movie[moviesResultJsonArray.length()];
 
         for(int i = 0; i < moviesResultJsonArray.length(); i++){
-            String movieTitle = moviesResultJsonArray.getJSONObject(i).optString(TITLE);
+            String movieId = moviesResultJsonArray.getJSONObject(i).optString(ID);
             String moviePoster = moviesResultJsonArray.getJSONObject(i).optString(POSTER_PATH);
-            String movieRelease = moviesResultJsonArray.getJSONObject(i).optString(RELEASE_DATE);
-            String movieRate = moviesResultJsonArray.getJSONObject(i).optString(VOTE_AVERAGE);
-            String movieOverview = moviesResultJsonArray.getJSONObject(i).optString(OVERVIEW);
-            String movieDuration = moviesResultJsonArray.getJSONObject(i).optString(DURATION);
 
-            moviesDetailsArray[i] =
-                    new Movie(movieTitle,
-                            POSTER_BASE_URL+POSTER_SIZE+moviePoster,
-                            movieRelease,
-                            movieRate,
-                            movieOverview,
-                            movieDuration);
+            moviesDetailsArray[i] = new Movie(movieId, POSTER_BASE_URL+POSTER_SIZE+moviePoster);
         }
 
         return moviesDetailsArray;
 
     }
+
+    public static DetailMovie getDetailMovieStringsFromJson(String json) throws JSONException {
+
+        JSONObject moviesJson = new JSONObject(json);
+
+        JSONArray moviesResultJsonArray = new JSONArray().put(moviesJson);
+
+        //DetailMovie[] moviesDetailsArray = new DetailMovie[moviesResultJsonArray.length()];
+
+        String movieTitle = moviesJson.optString(TITLE);
+        String moviePoster = moviesJson.optString(POSTER_PATH);
+        String movieRelease = moviesJson.optString(RELEASE_DATE);
+        String movieRate = moviesJson.optString(VOTE_AVERAGE);
+        String movieOverview = moviesJson.optString(OVERVIEW);
+        String movieDuration = moviesJson.optString(DURATION);
+
+        DetailMovie movie = new DetailMovie(movieTitle,
+                        POSTER_BASE_URL+POSTER_SIZE+moviePoster,
+                        movieRelease,
+                        movieRate,
+                        movieOverview,
+                        movieDuration);
+
+        return movie;
+    }
+
 }

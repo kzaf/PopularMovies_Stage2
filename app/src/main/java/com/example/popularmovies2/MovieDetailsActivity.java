@@ -2,18 +2,27 @@ package com.example.popularmovies2;
 
 import android.annotation.SuppressLint;
 import android.content.Intent;
+import android.os.AsyncTask;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.example.popularmovies2.models.DetailMovie;
 import com.example.popularmovies2.models.Movie;
+import com.example.popularmovies2.utilities.AsyncTaskCompleteListener;
+import com.example.popularmovies2.utilities.FetchAsyncTaskBase;
+import com.example.popularmovies2.utilities.MovieDetailsJsonUtils;
+import com.example.popularmovies2.utilities.NetworkUtils;
 import com.squareup.picasso.Picasso;
+
+import java.net.URL;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 
-public class MovieDetailsActivity extends AppCompatActivity {
+public class MovieDetailsActivity extends AppCompatActivity implements AsyncTaskCompleteListener {
 
     @BindView(R.id.details_poster)
     ImageView mMoviePoster;
@@ -39,11 +48,14 @@ public class MovieDetailsActivity extends AppCompatActivity {
         Intent intent = getIntent();
         Movie selectedMovie = intent.getParcelableExtra("Movie"); // Receive the Movie object as Parcelable
 
-        populateUi(selectedMovie);
+        FetchAsyncTaskBase getMovies = new FetchAsyncTaskBase(selectedMovie.getMovieId(), this);
+        getMovies.execute();
+
+        //populateUi(selectedMovie);
     }
 
     @SuppressLint("SetTextI18n")
-    private void populateUi(Movie movie){
+    private void populateUi(DetailMovie movie){
 
         String notAvailable = "N/A";
 
@@ -73,7 +85,7 @@ public class MovieDetailsActivity extends AppCompatActivity {
         }
 
         if(movie.getMovieDuration() != null && !(movie.getMovieDuration().equals(""))){
-            mMovieDuration.setText(movie.getMovieOverview() + " min");
+            mMovieDuration.setText(movie.getMovieDuration() + " min");
         }else{
             mMovieDuration.setText(notAvailable);
         }
@@ -85,4 +97,8 @@ public class MovieDetailsActivity extends AppCompatActivity {
                 .into(mMoviePoster);
     }
 
+    @Override
+    public void onTaskComplete(Object movie) {
+        populateUi((DetailMovie) movie);
+    }
 }

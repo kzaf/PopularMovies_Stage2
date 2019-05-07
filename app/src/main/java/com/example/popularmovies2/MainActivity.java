@@ -1,9 +1,7 @@
 package com.example.popularmovies2;
 
-import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
-import android.os.AsyncTask;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.GridLayoutManager;
@@ -17,15 +15,14 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.example.popularmovies2.models.Movie;
-import com.example.popularmovies2.utilities.MovieDetailsJsonUtils;
-import com.example.popularmovies2.utilities.NetworkUtils;
-
-import java.net.URL;
+import com.example.popularmovies2.utilities.AsyncTaskCompleteListener;
+import com.example.popularmovies2.utilities.FetchAsyncTaskBase;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 
-public class MainActivity extends AppCompatActivity implements MoviesAdapter.MoviesAdapterListItemClickListener {
+public class MainActivity extends AppCompatActivity
+        implements MoviesAdapter.MoviesAdapterListItemClickListener, AsyncTaskCompleteListener {
 
     public static final String POPULAR_QUERY = "popular";
     public static final String TOP_RATED_QUERY = "top_rated";
@@ -60,8 +57,11 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.Mov
     }
 
     private void loadMovieData(String query){
+        mLoadingIndicator.setVisibility(View.VISIBLE);
         showMoviesList();
-        new FetchMovieTask().execute(query);
+
+        FetchAsyncTaskBase getMovies = new FetchAsyncTaskBase(query, this);
+        getMovies.execute();
     }
 
     @Override
@@ -90,53 +90,6 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.Mov
         return super.onOptionsItemSelected(item);
     }
 
-    @SuppressLint("StaticFieldLeak")
-    public class FetchMovieTask extends AsyncTask<String, Void, Movie[]>{
-
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-            mLoadingIndicator.setVisibility(View.VISIBLE);
-        }
-
-        @Override
-        protected Movie[] doInBackground(String... strings) {
-
-            if (strings.length == 0) {
-                return null;
-            }
-
-            String searchQuery = strings[0];
-            URL movieRequestURL = NetworkUtils.buildUrl(searchQuery);
-
-            try {
-                String jsonMovieResponse = NetworkUtils.
-                        getResponseFromHttpUrl(movieRequestURL);
-
-                mMovies = MovieDetailsJsonUtils.
-                        getSimpleWeatherStringsFromJson(jsonMovieResponse);
-
-                return mMovies;
-
-            } catch (Exception e) {
-                e.printStackTrace();
-                return null;
-            }
-        }
-
-        @Override
-        protected void onPostExecute(Movie[] movies) {
-            mLoadingIndicator.setVisibility(View.INVISIBLE);
-            if (movies != null) {
-                showMoviesList();
-                mMoviesAdapter = new MoviesAdapter(movies, MainActivity.this);
-                mRecyclerView.setAdapter(mMoviesAdapter);
-            } else {
-                showErrorMessage();
-            }
-        }
-    }
-
     private void showMoviesList() {
         mErrorMessageDisplay.setVisibility(View.INVISIBLE);
         mRecyclerView.setVisibility(View.VISIBLE);
@@ -155,4 +108,17 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.Mov
         return (int) (dpWidth / 180);
     }
 
+    @Override
+    public void onTaskComplete(Object movies) {
+        mLoadingIndicator.setVisibility(View.INVISIBLE);
+        if (movies != null) {
+                showMoviesList();
+                mMoviesAdapter = new MoviesAdapter((Movie[]) movies, MainActivity.this);
+                mRecyclerView.setAdapter(mMoviesAdapter);
+                mMovies = (Movie[]) movies;
+            } else {
+                showErrorMessage();
+            }
+
+    }
 }
