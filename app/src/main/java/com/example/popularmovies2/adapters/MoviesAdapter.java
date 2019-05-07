@@ -1,4 +1,4 @@
-package com.example.popularmovies2;
+package com.example.popularmovies2.adapters;
 
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -6,6 +6,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 
+import com.example.popularmovies2.R;
 import com.example.popularmovies2.models.Movie;
 import com.squareup.picasso.Picasso;
 
