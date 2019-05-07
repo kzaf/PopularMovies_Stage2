@@ -2,6 +2,7 @@
 <ScrollView
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical">
@@ -114,6 +115,8 @@
             android:layout_height="wrap_content"
             android:layout_margin="@dimen/detailscreen_element_margin"
             android:text="@string/trailers"
+            android:textColor="#4CAF50"
+            android:textSize="18sp"
             android:textStyle="bold" />
 
         <android.support.v7.widget.RecyclerView
@@ -138,7 +141,16 @@
             android:layout_margin="@dimen/detailscreen_element_margin"
             android:text="@string/reviews"
             android:textAllCaps="false"
+            android:textColor="#4CAF50"
+            android:textSize="18sp"
             android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/no_reviews_tv"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingLeft="8sp"
+            tools:visibility="visible" />
 
         <android.support.v7.widget.RecyclerView
             android:id="@+id/details_reviews_recycler_view"

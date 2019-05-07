@@ -44,10 +44,6 @@ public final class MovieDetailsJsonUtils {
 
         JSONObject moviesJson = new JSONObject(json);
 
-        JSONArray moviesResultJsonArray = new JSONArray().put(moviesJson);
-
-        //DetailMovie[] moviesDetailsArray = new DetailMovie[moviesResultJsonArray.length()];
-
         String movieTitle = moviesJson.optString(TITLE);
         String moviePoster = moviesJson.optString(POSTER_PATH);
         String movieRelease = moviesJson.optString(RELEASE_DATE);
@@ -55,14 +51,12 @@ public final class MovieDetailsJsonUtils {
         String movieOverview = moviesJson.optString(OVERVIEW);
         String movieDuration = moviesJson.optString(DURATION);
 
-        DetailMovie movie = new DetailMovie(movieTitle,
-                        POSTER_BASE_URL+POSTER_SIZE+moviePoster,
-                        movieRelease,
-                        movieRate,
-                        movieOverview,
-                        movieDuration);
-
-        return movie;
+        return new DetailMovie(movieTitle,
+                               POSTER_BASE_URL+POSTER_SIZE+moviePoster,
+                               movieRelease,
+                               movieRate,
+                               movieOverview,
+                               movieDuration);
     }
 
 }
