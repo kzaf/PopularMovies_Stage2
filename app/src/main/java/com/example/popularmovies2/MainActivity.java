@@ -2,6 +2,7 @@ package com.example.popularmovies2;
 
 import android.content.Context;
 import android.content.Intent;
+import android.databinding.DataBindingUtil;
 import android.os.Parcelable;
 import android.os.PersistableBundle;
 import android.support.v7.app.AppCompatActivity;
@@ -17,6 +18,7 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.example.popularmovies2.adapters.MoviesAdapter;
+import com.example.popularmovies2.databinding.ActivityMainBinding;
 import com.example.popularmovies2.models.Movie;
 import com.example.popularmovies2.utilities.AsyncTaskCompleteListener;
 import com.example.popularmovies2.utilities.FetchAsyncTaskBase;
@@ -33,13 +35,9 @@ public class MainActivity extends AppCompatActivity
     private static Bundle mBundleRecyclerViewState;
     private Movie[] mMovies;
 
-    @BindView(R.id.recycler_view_movies)
-    RecyclerView mRecyclerView;
     private  MoviesAdapter mMoviesAdapter;
-    @BindView(R.id.tv_error_message_display)
-    TextView mErrorMessageDisplay;
-    @BindView(R.id.progressBar)
-    ProgressBar mLoadingIndicator;
+
+    ActivityMainBinding mMainBinding;
 
     String query = "popular";
     private final String KEY_RECYCLER_STATE = "recycler_state";
@@ -51,22 +49,22 @@ public class MainActivity extends AppCompatActivity
         if (savedInstanceState != null) {
             query = savedInstanceState.getString(LIFECYCLE_CALLBACKS_TEXT_KEY);
         }
-        setContentView(R.layout.activity_main);
+        mMainBinding = DataBindingUtil.setContentView(this, R.layout.activity_main);
 
         ButterKnife.bind(this);
 
         GridLayoutManager LayoutManager = new GridLayoutManager(this, calculateNoOfColumns(this));
 
-        mRecyclerView.setLayoutManager(LayoutManager);
-        mRecyclerView.setHasFixedSize(true);
+        mMainBinding.recyclerViewMovies.setLayoutManager(LayoutManager);
+        mMainBinding.recyclerViewMovies.setHasFixedSize(true);
 
-        mRecyclerView.setAdapter(mMoviesAdapter);
+        mMainBinding.recyclerViewMovies.setAdapter(mMoviesAdapter);
 
         loadMovieData(query);
     }
 
     private void loadMovieData(String query){
-        mLoadingIndicator.setVisibility(View.VISIBLE);
+        mMainBinding.progressBar.setVisibility(View.VISIBLE);
         showMoviesList();
 
         FetchAsyncTaskBase getMovies = new FetchAsyncTaskBase(query, this);
@@ -102,13 +100,13 @@ public class MainActivity extends AppCompatActivity
     }
 
     private void showMoviesList() {
-        mErrorMessageDisplay.setVisibility(View.INVISIBLE);
-        mRecyclerView.setVisibility(View.VISIBLE);
+        mMainBinding.tvErrorMessageDisplay.setVisibility(View.INVISIBLE);
+        mMainBinding.recyclerViewMovies.setVisibility(View.VISIBLE);
     }
 
     private void showErrorMessage() {
-        mRecyclerView.setVisibility(View.INVISIBLE);
-        mErrorMessageDisplay.setVisibility(View.VISIBLE);
+        mMainBinding.recyclerViewMovies.setVisibility(View.INVISIBLE);
+        mMainBinding.tvErrorMessageDisplay.setVisibility(View.VISIBLE);
     }
 
     // Following this thread: https://stackoverflow.com/questions/33575731/gridlayoutmanager-how-to-auto-fit-columns
@@ -121,11 +119,11 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public void onTaskComplete(Object movies) {
-        mLoadingIndicator.setVisibility(View.INVISIBLE);
+        mMainBinding.progressBar.setVisibility(View.INVISIBLE);
         if (movies != null) {
                 showMoviesList();
                 mMoviesAdapter = new MoviesAdapter((Movie[]) movies, MainActivity.this);
-                mRecyclerView.setAdapter(mMoviesAdapter);
+                mMainBinding.recyclerViewMovies.setAdapter(mMoviesAdapter);
                 mMovies = (Movie[]) movies;
             } else {
                 showErrorMessage();
@@ -150,7 +148,7 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onPause() {
         mBundleRecyclerViewState = new Bundle();
-        Parcelable listState = mRecyclerView.getLayoutManager().onSaveInstanceState();
+        Parcelable listState = mMainBinding.recyclerViewMovies.getLayoutManager().onSaveInstanceState();
         mBundleRecyclerViewState.putParcelable(KEY_RECYCLER_STATE, listState);
         super.onPause();
     }
@@ -160,7 +158,7 @@ public class MainActivity extends AppCompatActivity
         super.onResume();
         if (mBundleRecyclerViewState != null) {
             Parcelable listState = mBundleRecyclerViewState.getParcelable(KEY_RECYCLER_STATE);
-            mRecyclerView.getLayoutManager().onRestoreInstanceState(listState);
+            mMainBinding.recyclerViewMovies.getLayoutManager().onRestoreInstanceState(listState);
         }
     }
 
