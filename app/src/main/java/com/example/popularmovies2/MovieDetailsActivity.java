@@ -14,6 +14,8 @@ import android.widget.Toast;
 
 import com.example.popularmovies2.adapters.ReviewsAdapter;
 import com.example.popularmovies2.adapters.TrailersAdapter;
+import com.example.popularmovies2.database.AppDatabase;
+import com.example.popularmovies2.database.FavoriteMovie;
 import com.example.popularmovies2.databinding.ActivityDetailsBinding;
 import com.example.popularmovies2.models.DetailMovie;
 import com.example.popularmovies2.models.Movie;
@@ -36,6 +38,10 @@ public class MovieDetailsActivity extends AppCompatActivity implements AsyncTask
 
     private ActivityDetailsBinding mDetailsBinding;
 
+    private AppDatabase mDb;
+
+    private String movie_id;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -45,14 +51,14 @@ public class MovieDetailsActivity extends AppCompatActivity implements AsyncTask
         Intent intent = getIntent();
         Movie selectedMovie = intent.getParcelableExtra("Movie"); // Receive the Movie object as Parcelable
 
-        FetchAsyncTaskBase getMovies = new FetchAsyncTaskBase(selectedMovie.getMovieId(), this);
+        movie_id = selectedMovie.getMovieId();
+
+        FetchAsyncTaskBase getMovies = new FetchAsyncTaskBase(movie_id, this);
         getMovies.execute();
 
         mDetailsBinding.progressBarDetails.setVisibility(View.VISIBLE);
         mDetailsBinding.detailsLayout.setVisibility(View.INVISIBLE);
 
-        loadReviewData(selectedMovie.getMovieId() + "/reviews");
-        loadTrailerData(selectedMovie.getMovieId() + "/videos");
     }
 
     private void loadReviewData(String query){
@@ -116,6 +122,11 @@ public class MovieDetailsActivity extends AppCompatActivity implements AsyncTask
                 .placeholder(R.drawable.movie_poster_placeholder_image)
                 .error(R.drawable.not_found_poster_image)
                 .into(mDetailsBinding.movieDetailsLayout.detailsPoster);
+
+        mDetailsBinding.movieDetailsLayout.detailsPoster.setContentDescription(movie.getMoviePoster());
+
+        loadReviewData(movie_id + "/reviews");
+        loadTrailerData(movie_id + "/videos");
     }
 
     @Override
@@ -133,6 +144,25 @@ public class MovieDetailsActivity extends AppCompatActivity implements AsyncTask
         } catch (ActivityNotFoundException ex) {
             Toast.makeText(getApplicationContext(), "There was an error while opening the link", Toast.LENGTH_SHORT).show();
         }
+    }
+
+    public void onFavoriteStarClicked(){
+
+        int id = Integer.parseInt(movie_id);
+        String movieTitle = mDetailsBinding.detailsMovieTitleTv.getText().toString();
+        String movieRelease = mDetailsBinding.movieDetailsLayout.detailsYearTv.getText().toString();
+        String movieRate = mDetailsBinding.movieDetailsLayout.detailsRatingTv.getText().toString();
+        String movieOverview = mDetailsBinding.movieDetailsLayout.detailsDescriptionTv.getText().toString();
+        String movieDuration = mDetailsBinding.movieDetailsLayout.detailsDurationTv.getText().toString();
+
+        String moviePoster = mDetailsBinding.movieDetailsLayout.detailsPoster.getContentDescription().toString();
+
+
+        FavoriteMovie movieToBeSaved = new FavoriteMovie(id, movieTitle, moviePoster, movieRelease, movieRate, movieOverview, movieDuration);
+
+        mDb.taskDao().addFavoriteMovie(movieToBeSaved);
+        finish();
+
     }
 
     public class FetchReviewTask extends AsyncTask<String, Void, Review[]> {
