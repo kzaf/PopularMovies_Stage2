@@ -9,10 +9,7 @@ import android.os.AsyncTask;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
 import android.view.View;
-import android.widget.ImageView;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.popularmovies2.adapters.ReviewsAdapter;
@@ -27,9 +24,6 @@ import com.example.popularmovies2.utilities.FetchAsyncTaskBase;
 import com.example.popularmovies2.utilities.BaseJsonUtils;
 import com.example.popularmovies2.utilities.NetworkUtils;
 import com.squareup.picasso.Picasso;
-
-import butterknife.BindView;
-import butterknife.ButterKnife;
 
 public class MovieDetailsActivity extends AppCompatActivity implements AsyncTaskCompleteListener, TrailersAdapter.TrailersAdapterListItemClickListener {
 
@@ -46,6 +40,7 @@ public class MovieDetailsActivity extends AppCompatActivity implements AsyncTask
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mDetailsBinding = DataBindingUtil.setContentView(this, R.layout.activity_details);
+        getSupportActionBar().hide();
 
         Intent intent = getIntent();
         Movie selectedMovie = intent.getParcelableExtra("Movie"); // Receive the Movie object as Parcelable

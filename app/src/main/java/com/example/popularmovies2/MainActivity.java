@@ -4,27 +4,20 @@ import android.content.Context;
 import android.content.Intent;
 import android.databinding.DataBindingUtil;
 import android.os.Parcelable;
-import android.os.PersistableBundle;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.GridLayoutManager;
-import android.support.v7.widget.RecyclerView;
 import android.util.DisplayMetrics;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.ProgressBar;
-import android.widget.TextView;
 
 import com.example.popularmovies2.adapters.MoviesAdapter;
 import com.example.popularmovies2.databinding.ActivityMainBinding;
 import com.example.popularmovies2.models.Movie;
 import com.example.popularmovies2.utilities.AsyncTaskCompleteListener;
 import com.example.popularmovies2.utilities.FetchAsyncTaskBase;
-
-import butterknife.BindView;
-import butterknife.ButterKnife;
 
 public class MainActivity extends AppCompatActivity
         implements MoviesAdapter.MoviesAdapterListItemClickListener, AsyncTaskCompleteListener {
@@ -50,8 +43,6 @@ public class MainActivity extends AppCompatActivity
             query = savedInstanceState.getString(LIFECYCLE_CALLBACKS_TEXT_KEY);
         }
         mMainBinding = DataBindingUtil.setContentView(this, R.layout.activity_main);
-
-        ButterKnife.bind(this);
 
         GridLayoutManager LayoutManager = new GridLayoutManager(this, calculateNoOfColumns(this));
 
