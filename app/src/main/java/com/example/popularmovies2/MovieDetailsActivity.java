@@ -1,11 +1,14 @@
 package com.example.popularmovies2;
 
 import android.annotation.SuppressLint;
+import android.arch.lifecycle.LiveData;
+import android.arch.lifecycle.Observer;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.databinding.DataBindingUtil;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
@@ -53,32 +56,37 @@ public class MovieDetailsActivity extends AppCompatActivity implements AsyncTask
 
         movie_id = selectedMovie.getMovieId();
 
-
         mDb = AppDatabase.getInstance(getApplicationContext());
         checkMovieInTheDb(movie_id);
 
     }
 
-    private void checkMovieInTheDb(String id){
+    private void checkMovieInTheDb(final String id){
 
         mDetailsBinding.movieDetailsLayout.progressBarDetails.setVisibility(View.VISIBLE);
         mDetailsBinding.movieDetailsLayout.detailsLayout.setVisibility(View.INVISIBLE);
 
-        if (mDb.taskDao().loadMovie(id) != null){
-            mDetailsBinding.movieDetailsLayout.detailsFavoriteImage.setImageResource(R.drawable.selected_star);
-            FavoriteMovie favoriteMovie = mDb.taskDao().loadMovie(id);
-            populateUi(new DetailMovie(
-                favoriteMovie.getMovieTitle(),
-                favoriteMovie.getMoviePoster(),
-                favoriteMovie.getMovieRelease(),
-                favoriteMovie.getMovieRate(),
-                favoriteMovie.getMovieOverview(),
-                favoriteMovie.getMovieDuration()));
-        }else{
-            mDetailsBinding.movieDetailsLayout.detailsFavoriteImage.setImageResource(R.drawable.unselected_star);
-            FetchAsyncTaskBase getMovies = new FetchAsyncTaskBase(movie_id, this);
-            getMovies.execute();
-        }
+        final LiveData<FavoriteMovie> favoriteMovieLiveData = mDb.taskDao().loadMovie(id);
+        favoriteMovieLiveData.observe(this, new Observer<FavoriteMovie>() {
+            @Override
+            public void onChanged(@Nullable FavoriteMovie favoriteMovie) {
+
+                if (favoriteMovie != null){
+                    mDetailsBinding.movieDetailsLayout.detailsFavoriteImage.setImageResource(R.drawable.selected_star);
+                    populateUi(new DetailMovie(
+                            favoriteMovie.getMovieTitle(),
+                            favoriteMovie.getMoviePoster(),
+                            favoriteMovie.getMovieRelease(),
+                            favoriteMovie.getMovieRate(),
+                            favoriteMovie.getMovieOverview(),
+                            favoriteMovie.getMovieDuration()));
+                }else{
+                    mDetailsBinding.movieDetailsLayout.detailsFavoriteImage.setImageResource(R.drawable.unselected_star);
+                    FetchAsyncTaskBase getMovies = new FetchAsyncTaskBase(id, MovieDetailsActivity.this);
+                    getMovies.execute();
+                }
+            }
+        });
     }
 
     private void loadReviewData(String query){
@@ -169,34 +177,44 @@ public class MovieDetailsActivity extends AppCompatActivity implements AsyncTask
 
     public void onFavoriteStarClicked(View view){
 
-        if (mDb.taskDao().loadMovie(movie_id) != null){
+        final LiveData<FavoriteMovie> favoriteMovieLiveData = mDb.taskDao().loadMovie(movie_id);
+        favoriteMovieLiveData.observe(this, new Observer<FavoriteMovie>() {
+            @Override
+            public void onChanged(@Nullable final FavoriteMovie favoriteMovie) {
+                favoriteMovieLiveData.removeObserver(this);
+                if(favoriteMovie != null){
+                    AppExecutors.getInstance().diskIO().execute(new Runnable() {
+                        @Override
+                        public void run() {
+                            mDb.taskDao().removeFavoriteMovie(favoriteMovie);
+                        }
+                    });
 
-            Toast.makeText(getApplicationContext(), mDb.taskDao().loadMovie(movie_id).getMovieTitle() + " has been removed from favorites", Toast.LENGTH_LONG).show();
-            mDb.taskDao().removeFavoriteMovie(mDb.taskDao().loadMovie(movie_id));
+                    mDetailsBinding.movieDetailsLayout.detailsFavoriteImage.setImageResource(R.drawable.unselected_star);
+                }else{
+                    int id = Integer.parseInt(movie_id);
+                    String movieTitle = mDetailsBinding.movieDetailsLayout.detailsMovieTitleTv.getText().toString();
+                    String movieRelease = mDetailsBinding.movieDetailsLayout.detailsYearTv.getText().toString();
+                    String movieRate = mDetailsBinding.movieDetailsLayout.detailsRatingTv.getText().toString()
+                            .substring(0, mDetailsBinding.movieDetailsLayout.detailsRatingTv.getText().toString().length() - 3);
+                    String movieOverview = mDetailsBinding.movieDetailsLayout.detailsDescriptionTv.getText().toString();
+                    String movieDuration = mDetailsBinding.movieDetailsLayout.detailsDurationTv.getText().toString()
+                            .substring(0, mDetailsBinding.movieDetailsLayout.detailsDurationTv.getText().toString().length() - 4);
+                    String moviePoster = mDetailsBinding.movieDetailsLayout.detailsPoster.getContentDescription().toString();
 
-            mDetailsBinding.movieDetailsLayout.detailsFavoriteImage.setImageResource(R.drawable.unselected_star);
-        }else{
+                    final FavoriteMovie movieToBeSaved = new FavoriteMovie(id, movieTitle, moviePoster, movieRelease, movieRate, movieOverview, movieDuration);
 
-            int id = Integer.parseInt(movie_id);
-            String movieTitle = mDetailsBinding.movieDetailsLayout.detailsMovieTitleTv.getText().toString();
-            String movieRelease = mDetailsBinding.movieDetailsLayout.detailsYearTv.getText().toString();
-            String movieRate = mDetailsBinding.movieDetailsLayout.detailsRatingTv.getText().toString()
-                    .substring(0, mDetailsBinding.movieDetailsLayout.detailsRatingTv.getText().toString().length() - 3);
-            String movieOverview = mDetailsBinding.movieDetailsLayout.detailsDescriptionTv.getText().toString();
-            String movieDuration = mDetailsBinding.movieDetailsLayout.detailsDurationTv.getText().toString()
-                    .substring(0, mDetailsBinding.movieDetailsLayout.detailsDurationTv.getText().toString().length() - 4);
+                    AppExecutors.getInstance().diskIO().execute(new Runnable() {
+                        @Override
+                        public void run() {
+                            mDb.taskDao().addFavoriteMovie(movieToBeSaved);
+                        }
+                    });
 
-            String moviePoster = mDetailsBinding.movieDetailsLayout.detailsPoster.getContentDescription().toString();
-
-
-            FavoriteMovie movieToBeSaved = new FavoriteMovie(id, movieTitle, moviePoster, movieRelease, movieRate, movieOverview, movieDuration);
-
-            mDb.taskDao().addFavoriteMovie(movieToBeSaved);
-            Toast.makeText(getApplicationContext(), mDb.taskDao().loadMovie(movie_id).getMovieTitle() + " has been added to favorites!", Toast.LENGTH_LONG).show();
-
-
-            mDetailsBinding.movieDetailsLayout.detailsFavoriteImage.setImageResource(R.drawable.selected_star);
-        }
+                    mDetailsBinding.movieDetailsLayout.detailsFavoriteImage.setImageResource(R.drawable.selected_star);
+                }
+            }
+        });
     }
 
     public class FetchReviewTask extends AsyncTask<String, Void, Review[]> {

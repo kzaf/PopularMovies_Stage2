@@ -1,9 +1,12 @@
 package com.example.popularmovies2;
 
+import android.arch.lifecycle.LiveData;
+import android.arch.lifecycle.Observer;
 import android.content.Context;
 import android.content.Intent;
 import android.databinding.DataBindingUtil;
 import android.os.Parcelable;
+import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.GridLayoutManager;
@@ -41,9 +44,10 @@ public class MainActivity extends AppCompatActivity
 
     String query = "popular";
     private final String KEY_RECYCLER_STATE = "recycler_state";
-    public static final String LIFECYCLE_CALLBACKS_TEXT_KEY = "callbacks";
-    private boolean favorites_flag = false;
     private String LIFECYCLE_CALLBACKS_BOOL_FAVORITES_FLAG = "favorite_selected";
+    private static final String LIFECYCLE_CALLBACKS_TEXT_KEY = "callbacks";
+
+    private boolean favorites_flag = false; // a flag to track whether sorting as favorites has been selected or not
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -120,11 +124,16 @@ public class MainActivity extends AppCompatActivity
 
     private void loadFavoritePostersToGrid() {
         mDb = AppDatabase.getInstance(getApplicationContext());
-        FavoriteMovie[] favoriteMoviesArray = mDb.taskDao().loadAllFavoriteMovies();
-        List<Movie> moviesList = new ArrayList<>();
-        for (FavoriteMovie favoriteMovie : favoriteMoviesArray)
-            moviesList.add(new Movie(String.valueOf(favoriteMovie.getId()), favoriteMovie.getMoviePoster()));
-        loadPostersToGrid(moviesList.toArray(new Movie[0]));
+        final LiveData<FavoriteMovie[]> favoriteMovieLiveData = mDb.taskDao().loadAllFavoriteMovies();
+        favoriteMovieLiveData.observe(this, new Observer<FavoriteMovie[]>() {
+            @Override
+            public void onChanged(@Nullable FavoriteMovie[] favoriteMovie) {
+                List<Movie> moviesList = new ArrayList<>();
+                for (FavoriteMovie favMovie : favoriteMovie)
+                    moviesList.add(new Movie(String.valueOf(favMovie.getId()), favMovie.getMoviePoster()));
+                loadPostersToGrid(moviesList.toArray(new Movie[0]));
+            }
+        });
     }
 
     private void showMoviesList() {
@@ -148,13 +157,13 @@ public class MainActivity extends AppCompatActivity
     private void loadPostersToGrid(Movie[] movies) {
         mMainBinding.progressBar.setVisibility(View.INVISIBLE);
         if (movies != null) {
-                showMoviesList();
-                mMoviesAdapter = new MoviesAdapter(movies, MainActivity.this);
-                mMainBinding.recyclerViewMovies.setAdapter(mMoviesAdapter);
-                mMovies = movies;
-            } else {
-                showErrorMessage();
-            }
+            showMoviesList();
+            mMoviesAdapter = new MoviesAdapter(movies, MainActivity.this);
+            mMainBinding.recyclerViewMovies.setAdapter(mMoviesAdapter);
+            mMovies = movies;
+        } else {
+            showErrorMessage();
+        }
     }
 
 
