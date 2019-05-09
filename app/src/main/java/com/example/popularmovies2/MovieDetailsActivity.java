@@ -52,9 +52,7 @@ public class MovieDetailsActivity extends AppCompatActivity implements AsyncTask
         Movie selectedMovie = intent.getParcelableExtra("Movie"); // Receive the Movie object as Parcelable
 
         movie_id = selectedMovie.getMovieId();
-//
-//        mDetailsBinding.progressBarDetails.setVisibility(View.VISIBLE);
-//        mDetailsBinding.detailsLayout.setVisibility(View.INVISIBLE);
+
 
         mDb = AppDatabase.getInstance(getApplicationContext());
         checkMovieInTheDb(movie_id);
@@ -63,8 +61,11 @@ public class MovieDetailsActivity extends AppCompatActivity implements AsyncTask
 
     private void checkMovieInTheDb(String id){
 
+        mDetailsBinding.movieDetailsLayout.progressBarDetails.setVisibility(View.VISIBLE);
+        mDetailsBinding.movieDetailsLayout.detailsLayout.setVisibility(View.INVISIBLE);
+
         if (mDb.taskDao().loadMovie(id) != null){
-            mDetailsBinding.detailsFavoriteImage.setImageResource(R.drawable.selected_star);
+            mDetailsBinding.movieDetailsLayout.detailsFavoriteImage.setImageResource(R.drawable.selected_star);
             FavoriteMovie favoriteMovie = mDb.taskDao().loadMovie(id);
             populateUi(new DetailMovie(
                 favoriteMovie.getMovieTitle(),
@@ -74,7 +75,7 @@ public class MovieDetailsActivity extends AppCompatActivity implements AsyncTask
                 favoriteMovie.getMovieOverview(),
                 favoriteMovie.getMovieDuration()));
         }else{
-            mDetailsBinding.detailsFavoriteImage.setImageResource(R.drawable.unselected_star);
+            mDetailsBinding.movieDetailsLayout.detailsFavoriteImage.setImageResource(R.drawable.unselected_star);
             FetchAsyncTaskBase getMovies = new FetchAsyncTaskBase(movie_id, this);
             getMovies.execute();
         }
@@ -106,9 +107,9 @@ public class MovieDetailsActivity extends AppCompatActivity implements AsyncTask
         String notAvailable = "N/A";
 
         if(movie.getMovieTitle() != null && !(movie.getMovieTitle().equals(""))){
-            mDetailsBinding.detailsMovieTitleTv.setText(movie.getMovieTitle());
+            mDetailsBinding.movieDetailsLayout.detailsMovieTitleTv.setText(movie.getMovieTitle());
         }else{
-            mDetailsBinding.detailsMovieTitleTv.setText(notAvailable);
+            mDetailsBinding.movieDetailsLayout.detailsMovieTitleTv.setText(notAvailable);
         }
 
         if(movie.getMovieRelease() != null && !(movie.getMovieRelease().equals(""))){
@@ -147,8 +148,8 @@ public class MovieDetailsActivity extends AppCompatActivity implements AsyncTask
         loadReviewData(movie_id + "/reviews");
         loadTrailerData(movie_id + "/videos");
 
-//        mDetailsBinding.progressBarDetails.setVisibility(View.INVISIBLE);
-//        mDetailsBinding.detailsLayout.setVisibility(View.VISIBLE);
+        mDetailsBinding.movieDetailsLayout.progressBarDetails.setVisibility(View.INVISIBLE);
+        mDetailsBinding.movieDetailsLayout.detailsLayout.setVisibility(View.VISIBLE);
     }
 
     @Override
@@ -170,13 +171,14 @@ public class MovieDetailsActivity extends AppCompatActivity implements AsyncTask
 
         if (mDb.taskDao().loadMovie(movie_id) != null){
 
+            Toast.makeText(getApplicationContext(), mDb.taskDao().loadMovie(movie_id).getMovieTitle() + " has been removed from favorites", Toast.LENGTH_LONG).show();
             mDb.taskDao().removeFavoriteMovie(mDb.taskDao().loadMovie(movie_id));
 
-            mDetailsBinding.detailsFavoriteImage.setImageResource(R.drawable.unselected_star);
+            mDetailsBinding.movieDetailsLayout.detailsFavoriteImage.setImageResource(R.drawable.unselected_star);
         }else{
 
             int id = Integer.parseInt(movie_id);
-            String movieTitle = mDetailsBinding.detailsMovieTitleTv.getText().toString();
+            String movieTitle = mDetailsBinding.movieDetailsLayout.detailsMovieTitleTv.getText().toString();
             String movieRelease = mDetailsBinding.movieDetailsLayout.detailsYearTv.getText().toString();
             String movieRate = mDetailsBinding.movieDetailsLayout.detailsRatingTv.getText().toString()
                     .substring(0, mDetailsBinding.movieDetailsLayout.detailsRatingTv.getText().toString().length() - 3);
@@ -190,8 +192,10 @@ public class MovieDetailsActivity extends AppCompatActivity implements AsyncTask
             FavoriteMovie movieToBeSaved = new FavoriteMovie(id, movieTitle, moviePoster, movieRelease, movieRate, movieOverview, movieDuration);
 
             mDb.taskDao().addFavoriteMovie(movieToBeSaved);
+            Toast.makeText(getApplicationContext(), mDb.taskDao().loadMovie(movie_id).getMovieTitle() + " has been added to favorites!", Toast.LENGTH_LONG).show();
 
-            mDetailsBinding.detailsFavoriteImage.setImageResource(R.drawable.selected_star);
+
+            mDetailsBinding.movieDetailsLayout.detailsFavoriteImage.setImageResource(R.drawable.selected_star);
         }
     }
 
