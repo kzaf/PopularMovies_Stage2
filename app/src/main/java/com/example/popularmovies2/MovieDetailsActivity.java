@@ -52,13 +52,32 @@ public class MovieDetailsActivity extends AppCompatActivity implements AsyncTask
         Movie selectedMovie = intent.getParcelableExtra("Movie"); // Receive the Movie object as Parcelable
 
         movie_id = selectedMovie.getMovieId();
+//
+//        mDetailsBinding.progressBarDetails.setVisibility(View.VISIBLE);
+//        mDetailsBinding.detailsLayout.setVisibility(View.INVISIBLE);
 
-        FetchAsyncTaskBase getMovies = new FetchAsyncTaskBase(movie_id, this);
-        getMovies.execute();
+        mDb = AppDatabase.getInstance(getApplicationContext());
+        checkMovieInTheDb(movie_id);
 
-        mDetailsBinding.progressBarDetails.setVisibility(View.VISIBLE);
-        mDetailsBinding.detailsLayout.setVisibility(View.INVISIBLE);
+    }
 
+    private void checkMovieInTheDb(String id){
+
+        if (mDb.taskDao().loadMovie(id) != null){
+            mDetailsBinding.detailsFavoriteImage.setImageResource(R.drawable.selected_star);
+            FavoriteMovie favoriteMovie = mDb.taskDao().loadMovie(id);
+            populateUi(new DetailMovie(
+                favoriteMovie.getMovieTitle(),
+                favoriteMovie.getMoviePoster(),
+                favoriteMovie.getMovieRelease(),
+                favoriteMovie.getMovieRate(),
+                favoriteMovie.getMovieOverview(),
+                favoriteMovie.getMovieDuration()));
+        }else{
+            mDetailsBinding.detailsFavoriteImage.setImageResource(R.drawable.unselected_star);
+            FetchAsyncTaskBase getMovies = new FetchAsyncTaskBase(movie_id, this);
+            getMovies.execute();
+        }
     }
 
     private void loadReviewData(String query){
@@ -127,12 +146,13 @@ public class MovieDetailsActivity extends AppCompatActivity implements AsyncTask
 
         loadReviewData(movie_id + "/reviews");
         loadTrailerData(movie_id + "/videos");
+
+//        mDetailsBinding.progressBarDetails.setVisibility(View.INVISIBLE);
+//        mDetailsBinding.detailsLayout.setVisibility(View.VISIBLE);
     }
 
     @Override
     public void onTaskComplete(Object movie) {
-        mDetailsBinding.progressBarDetails.setVisibility(View.INVISIBLE);
-        mDetailsBinding.detailsLayout.setVisibility(View.VISIBLE);
         populateUi((DetailMovie) movie);
     }
 
@@ -142,27 +162,37 @@ public class MovieDetailsActivity extends AppCompatActivity implements AsyncTask
         try {
             startActivity(intent);
         } catch (ActivityNotFoundException ex) {
-            Toast.makeText(getApplicationContext(), "There was an error while opening the link", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getApplicationContext(), getApplicationContext().getString(R.string.error_load_video), Toast.LENGTH_SHORT).show();
         }
     }
 
-    public void onFavoriteStarClicked(){
+    public void onFavoriteStarClicked(View view){
 
-        int id = Integer.parseInt(movie_id);
-        String movieTitle = mDetailsBinding.detailsMovieTitleTv.getText().toString();
-        String movieRelease = mDetailsBinding.movieDetailsLayout.detailsYearTv.getText().toString();
-        String movieRate = mDetailsBinding.movieDetailsLayout.detailsRatingTv.getText().toString();
-        String movieOverview = mDetailsBinding.movieDetailsLayout.detailsDescriptionTv.getText().toString();
-        String movieDuration = mDetailsBinding.movieDetailsLayout.detailsDurationTv.getText().toString();
+        if (mDb.taskDao().loadMovie(movie_id) != null){
 
-        String moviePoster = mDetailsBinding.movieDetailsLayout.detailsPoster.getContentDescription().toString();
+            mDb.taskDao().removeFavoriteMovie(mDb.taskDao().loadMovie(movie_id));
+
+            mDetailsBinding.detailsFavoriteImage.setImageResource(R.drawable.unselected_star);
+        }else{
+
+            int id = Integer.parseInt(movie_id);
+            String movieTitle = mDetailsBinding.detailsMovieTitleTv.getText().toString();
+            String movieRelease = mDetailsBinding.movieDetailsLayout.detailsYearTv.getText().toString();
+            String movieRate = mDetailsBinding.movieDetailsLayout.detailsRatingTv.getText().toString()
+                    .substring(0, mDetailsBinding.movieDetailsLayout.detailsRatingTv.getText().toString().length() - 3);
+            String movieOverview = mDetailsBinding.movieDetailsLayout.detailsDescriptionTv.getText().toString();
+            String movieDuration = mDetailsBinding.movieDetailsLayout.detailsDurationTv.getText().toString()
+                    .substring(0, mDetailsBinding.movieDetailsLayout.detailsDurationTv.getText().toString().length() - 4);
+
+            String moviePoster = mDetailsBinding.movieDetailsLayout.detailsPoster.getContentDescription().toString();
 
 
-        FavoriteMovie movieToBeSaved = new FavoriteMovie(id, movieTitle, moviePoster, movieRelease, movieRate, movieOverview, movieDuration);
+            FavoriteMovie movieToBeSaved = new FavoriteMovie(id, movieTitle, moviePoster, movieRelease, movieRate, movieOverview, movieDuration);
 
-        mDb.taskDao().addFavoriteMovie(movieToBeSaved);
-        finish();
+            mDb.taskDao().addFavoriteMovie(movieToBeSaved);
 
+            mDetailsBinding.detailsFavoriteImage.setImageResource(R.drawable.selected_star);
+        }
     }
 
     public class FetchReviewTask extends AsyncTask<String, Void, Review[]> {

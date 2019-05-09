@@ -9,14 +9,15 @@
 
         <FrameLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent">
+            android:layout_height="wrap_content">
 
             <ProgressBar
                 android:id="@+id/progressBarDetails"
                 style="?android:attr/progressBarStyle"
                 android:layout_width="wrap_content"
-                android:layout_gravity="center"
                 android:layout_height="wrap_content"
+                android:layout_gravity="center|top"
+                android:layout_marginTop="200sp"
                 android:visibility="invisible" />
 
             <LinearLayout
@@ -54,6 +55,7 @@
                         android:layout_height="wrap_content"
                         android:layout_gravity="center"
                         android:layout_weight="6"
+                        android:onClick="onFavoriteStarClicked"
                         app:srcCompat="@drawable/unselected_star" />
                 </LinearLayout>
 

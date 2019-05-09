@@ -16,4 +16,5 @@
     <string name="name_video">Name</string>
     <string name="type_video">Type</string>
     <string name="no_trailers">No videos :(</string>
+    <string name="error_load_video">There was an error while opening the link</string>
 </resources>
