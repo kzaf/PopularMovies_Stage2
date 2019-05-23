@@ -1,6 +1,6 @@
 # Popular Movies 2
 Popular Movie Stage 2 for Udacity Android Nanodegree.     
-An Android app that shows the most popular movies from [The Movie DB](www.themoviedb.org)
+An Android app that shows the most popular movies from [The Movie DB](https://www.themoviedb.org/)
 
 ## Features
  - Display movie details like rating, duration and description
