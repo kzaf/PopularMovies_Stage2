@@ -11,4 +11,4 @@ An Android app that shows the most popular movies from [The Movie DB](https://ww
  - Show movie reviews
  
 ## Screenshots
-![Screenshot 2019-05-23 at 06 09 55](https://user-images.githubusercontent.com/11368889/58223244-93e28700-7d21-11e9-9c3e-e6d6bc267d6f.png)![Screenshot 2019-05-23 at 06 10 12](https://user-images.githubusercontent.com/11368889/58223248-96dd7780-7d21-11e9-8b2b-0f54abd29b7e.png)
+![Screenshot 2019-05-23 at 06 09 55](https://user-images.githubusercontent.com/11368889/110252743-24399c80-7f87-11eb-9e23-1005061d7f33.png)
